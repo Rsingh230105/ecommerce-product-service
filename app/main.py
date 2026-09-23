@@ -1,0 +1,14 @@
+from fastapi import FastAPI
+
+app = FastAPI(
+    title="E-Commerce Product Service",
+    version="1.0.0"
+)
+
+
+@app.get("/health")
+def health_check():
+    return {
+        "status": "healthy",
+        "service": "product-service"
+    }
