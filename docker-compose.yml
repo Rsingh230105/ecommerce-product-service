@@ -1,6 +1,9 @@
 services:
   product-service:
     build: .
+    networks:
+      - default
+      - ecommerce-network
     container_name: ecommerce-product-service
     ports:
       - "8000:8000"
@@ -27,3 +30,7 @@ services:
 
 volumes:
   ecommerce_postgres_data:
+
+networks:
+  ecommerce-network:
+    external: true
