@@ -1,4 +1,5 @@
-from sqlalchemy import String, Float, Integer, CheckConstraint
+from decimal import Decimal
+from sqlalchemy import String, Numeric, Integer, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -28,10 +29,10 @@ class Product(Base):
         nullable=False
     )
 
-    price: Mapped[float] = mapped_column(
-        Float,
-        nullable=False
-    )
+    price: Mapped[Decimal] = mapped_column(
+    Numeric(10, 2),
+    nullable=False
+)
 
     quantity: Mapped[int] = mapped_column(
         Integer,

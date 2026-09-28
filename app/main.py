@@ -1,5 +1,6 @@
-from fastapi import FastAPI, HTTPException, Depends, Query
+﻿from fastapi import FastAPI, HTTPException, Depends, Query
 from app.schemas import ProductCreate, ProductResponse, ProductUpdate
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models import Product
@@ -24,25 +25,39 @@ def health_check():
         "status": "healthy",
         "service": "product-service"
     }
+
+@app.get("/ready")
+def readiness_check(db: Session = Depends(get_db)):
+    try:
+        db.execute(text("SELECT 1"))
+        return {
+            "status": "ready",
+            "service": "product-service",
+            "database": "ok"
+        }
+    except Exception:
+        raise HTTPException(status_code=503, detail="Database unavailable")
     
 
 @app.post("/products", response_model=ProductResponse)
-def create_product(
-    product: ProductCreate,
-    db: Session = Depends(get_db)
-):
-    new_product = Product(
-        name=product.name,
-        description=product.description,
-        price=product.price,
-        quantity=product.quantity
-    )
+def create_product(product: ProductCreate, db: Session = Depends(get_db)):
+    try:
+        new_product = Product(
+            name=product.name,
+            description=product.description,
+            price=product.price,
+            quantity=product.quantity
+        )
 
-    db.add(new_product)
-    db.commit()
-    db.refresh(new_product)
+        db.add(new_product)
+        db.commit()
+        db.refresh(new_product)
 
-    return new_product
+        return new_product
+
+    except Exception:
+        db.rollback()
+        raise
 
 # @app.get("/products", response_model=list[ProductResponse])
 # def get_products():
@@ -118,27 +133,32 @@ def update_product(
     product: ProductUpdate,
     db: Session = Depends(get_db)
 ):
-    existing_product = (
-        db.query(Product)
-        .filter(Product.id == product_id)
-        .first()
-    )
-
-    if not existing_product:
-        raise HTTPException(
-            status_code=404,
-            detail="Product not found"
+    try:
+        existing_product = (
+            db.query(Product)
+            .filter(Product.id == product_id)
+            .first()
         )
 
-    existing_product.name = product.name
-    existing_product.description = product.description
-    existing_product.price = product.price
-    existing_product.quantity = product.quantity
+        if not existing_product:
+            raise HTTPException(
+                status_code=404,
+                detail="Product not found"
+            )
 
-    db.commit()
-    db.refresh(existing_product)
+        existing_product.name = product.name
+        existing_product.description = product.description
+        existing_product.price = product.price
+        existing_product.quantity = product.quantity
 
-    return existing_product
+        db.commit()
+        db.refresh(existing_product)
+
+        return existing_product
+
+    except Exception:
+        db.rollback()
+        raise
 
 
 # @app.delete("/products/{product_id}")
@@ -158,25 +178,25 @@ def update_product(
 #     )
 
 @app.delete("/products/{product_id}")
-def delete_product(
-    product_id: int,
-    db: Session = Depends(get_db)
-):
-    product = (
-        db.query(Product)
-        .filter(Product.id == product_id)
-        .first()
-    )
-
-    if not product:
-        raise HTTPException(
-            status_code=404,
-            detail="Product not found"
+def delete_product(product_id: int, db: Session = Depends(get_db)):
+    try:
+        product = (
+            db.query(Product)
+            .filter(Product.id == product_id)
+            .first()
         )
 
-    db.delete(product)
-    db.commit()
+        if not product:
+            raise HTTPException(
+                status_code=404,
+                detail="Product not found"
+            )
 
-    return {
-        "message": "Product deleted successfully"
-    }
+        db.delete(product)
+        db.commit()
+
+        return {"message": "Product deleted successfully"}
+
+    except Exception:
+        db.rollback()
+        raise

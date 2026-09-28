@@ -30,7 +30,7 @@ def test_create_product():
     data = response.json()
 
     assert data["name"] == "Test Laptop"
-    assert data["price"] == 50000
+    assert data["price"] == "50000.00"
     assert data["quantity"] == 10
     assert "id" in data
     
@@ -68,7 +68,7 @@ def test_get_product_by_id():
 
     assert data["id"] == product_id
     assert data["name"] == "Test Phone"
-    assert data["price"] == 25000
+    assert data["price"] == "25000.00"
     
     
 def test_update_product():
@@ -102,7 +102,7 @@ def test_update_product():
 
     assert data["id"] == product_id
     assert data["name"] == "Updated Laptop"
-    assert data["price"] == 45000
+    assert data["price"] == "45000.00"
     assert data["quantity"] == 10
     
 
