@@ -21,7 +21,7 @@ PRODUCT_VERSION_TABLE = "alembic_version"
 
 def run_migrations_offline() -> None:
     """Run migrations in offline mode."""
-    url = DATABASE_URL.render_as_string(hide_password=False)
+    url = DATABASE_URL.render_as_string(hide_password=True)
 
     context.configure(
         url=url,
